@@ -29,6 +29,8 @@ MAGICAL_POWERS = [161508165672763392, 140564059417346049, 312615171191341056, 14
                   164379304879194112,  98569889437990912, 184079890373541889,
 ]
 
+SERVER_WHITELIST = [184755239952318464, 290573725366091787, 329367873858568210]
+
 
 class RuleBot(discord.Client):
     def __init__(self):
@@ -45,12 +47,13 @@ class RuleBot(discord.Client):
             if message.content.startswith(PREFIX):
                 command = message.content[len(PREFIX):]
                 
-                if command == 'die':
-                    if message.author.id in MAGICAL_POWERS:
-                        await message.channel.send(':wave:')
-                        await self.logout()
-                elif command.split(' ')[0] == 'help':
-                    msg = '''```yaml
+                if isinstance(message.channel, discord.abc.PrivateChannel) or message.guild.id in SERVER_WHITELIST:
+                    if command == 'die':
+                        if message.author.id in MAGICAL_POWERS:
+                            await message.channel.send(':wave:')
+                            await self.logout()
+                    elif command.split(' ')[0] == 'help':
+                        msg = '''```yaml
 [ =-=-= RuleBot Help =-=-= ]
 r.<rule id>             Show the rule with a particular id. For example r.A2
 r.search <search term>  Search the rules for a specific term
@@ -58,44 +61,44 @@ r.help                  Show this help message
 r.die                   Shutdown the bot
 r.reload_rules          Fetch the rules from Google Drive and update the local copy
 ```For more information about the bot, view the GitHub page at <https://github.com/Bottersnike/HTCRuleBot>'''
-                    await message.author.send(msg)
-                    if not isinstance(message.channel, discord.abc.PrivateChannel):
-                        await message.channel.send(':mailbox_with_mail:')
-                elif command.startswith('search '):
-                    term = command[7:]
-                    
-                    found = []
-                    
-                    with message.channel.typing():
-                        for block in self.rules:
-                            for rule in self.rules[block]:
-                                if term.lower() in self.rules[block][rule].lower():
-                                    found.append((block, rule, self.rules[block][rule]))
-                    
-                    if not found:
-                        await message.channel.send('No rule found matching that term')
-                    elif len(found) > 5:
-                        await message.channel.send('I found too many results. Please refine your search.')
-                    else:
-                        m = 'I found:'
-                        for f in found:
-                            m += '\n**Rule {}{}:** {}'.format(*f)
-                            
-                            if len(m) > 1500:
-                                await message.channel.send(m)
-                                m = ''
-                        if m:
-                            await message.channel.send(m)
-                elif command == 'reload_rules':
-                    if message.author.id in MAGICAL_POWERS:
+                        await message.author.send(msg)
+                        if not isinstance(message.channel, discord.abc.PrivateChannel):
+                            await message.channel.send(':mailbox_with_mail:')
+                    elif command.startswith('search '):
+                        term = command[7:]
+                        
+                        found = []
+                        
                         with message.channel.typing():
-                            self.reload_cache()
-                        await message.channel.send('Done!')
-                else:
-                    rule = self.lookup_rule(command)
-                
-                    if rule is not None:
-                        await message.channel.send('**Rule {}:** {}'.format(command.upper(), rule))
+                            for block in self.rules:
+                                for rule in self.rules[block]:
+                                    if term.lower() in self.rules[block][rule].lower():
+                                        found.append((block, rule, self.rules[block][rule]))
+                        
+                        if not found:
+                            await message.channel.send('No rule found matching that term')
+                        elif len(found) > 5:
+                            await message.channel.send('I found too many results. Please refine your search.')
+                        else:
+                            m = 'I found:'
+                            for f in found:
+                                m += '\n**Rule {}{}:** {}'.format(*f)
+                                
+                                if len(m) > 1500:
+                                    await message.channel.send(m)
+                                    m = ''
+                            if m:
+                                await message.channel.send(m)
+                    elif command == 'reload_rules':
+                        if message.author.id in MAGICAL_POWERS:
+                            with message.channel.typing():
+                                self.reload_cache()
+                            await message.channel.send('Done!')
+                    else:
+                        rule = self.lookup_rule(command)
+                    
+                        if rule is not None:
+                            await message.channel.send('**Rule {}:** {}'.format(command.upper(), rule))
         
     def lookup_rule(self, code):
         if len(code) < 2:
