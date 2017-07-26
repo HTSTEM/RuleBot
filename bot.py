@@ -49,9 +49,20 @@ class RuleBot(discord.Client):
                     if message.author.id in MAGICAL_POWERS:
                         await message.channel.send(':wave:')
                         await self.logout()
+                elif command.split(' ')[0] == 'help':
+                    msg = '''```yaml
+[ =-=-= RuleBot Help =-=-= ]
+r.<rule id>             Show the rule with a particular id. For example r.A2
+r.search <search term>  Search the rules for a specific term
+r.die                   Shutdown the bot
+r.reload_rules          Fetch the rules from Google Drive and update the local copy
+```For more information about the bot, view the GitHub page at <https://github.com/Bottersnike/HTCRuleBot>'''
+                    await message.author.send(msg)
+                    if not isinstance(message.channel, discord.abc.PrivateChannel):
+                        await message.channel.send(':mailbox_with_mail:')
                 elif command.startswith('search '):
                     term = command[7:]
-
+                    
                     found = []
                     
                     with message.channel.typing():
@@ -62,10 +73,18 @@ class RuleBot(discord.Client):
                     
                     if not found:
                         await message.channel.send('No rule found matching that term')
+                    elif len(found) > 5:
+                        await message.channel.send('I found too many results. Please refine your search.')
                     else:
-                        await message.channel.send('I found:\n{}'.format(
-                            '\n'.join(['**Rule {}{}:** {}'.format(*f) for f in found])
-                        ))
+                        m = 'I found:'
+                        for f in found:
+                            m += '\n**Rule {}{}:** {}'.format(*f)
+                            
+                            if len(m) > 1500:
+                                await message.channel.send(m)
+                                m = ''
+                        if m:
+                            await message.channel.send(m)
                 elif command == 'reload_rules':
                     with message.channel.typing():
                         self.reload_cache()
