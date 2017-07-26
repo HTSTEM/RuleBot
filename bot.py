@@ -87,9 +87,10 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                         if m:
                             await message.channel.send(m)
                 elif command == 'reload_rules':
-                    with message.channel.typing():
-                        self.reload_cache()
-                    await message.channel.send('Done!')
+                    if message.author.id in MAGICAL_POWERS:
+                        with message.channel.typing():
+                            self.reload_cache()
+                        await message.channel.send('Done!')
                 else:
                     rule = self.lookup_rule(command)
                 
