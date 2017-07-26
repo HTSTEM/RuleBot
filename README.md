@@ -5,6 +5,7 @@ This bot provides a few commands for accessing the rules on HTC.
 | ------- | ---------- |
 | `r.<rule id>` | Show the rule with a particular id. For example `r.A2` |
 | `r.search <search term>` | Search the rules for a specific term |
+| `r.help` | List the commands in the bot |
 | `r.die` | Shutdown the bot |
 | `r.reload_rules` | Fetch the rules from Google Drive and update the local copy |
 ## Hosting:

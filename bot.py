@@ -54,6 +54,7 @@ class RuleBot(discord.Client):
 [ =-=-= RuleBot Help =-=-= ]
 r.<rule id>             Show the rule with a particular id. For example r.A2
 r.search <search term>  Search the rules for a specific term
+r.help                  Show this help message
 r.die                   Shutdown the bot
 r.reload_rules          Fetch the rules from Google Drive and update the local copy
 ```For more information about the bot, view the GitHub page at <https://github.com/Bottersnike/HTCRuleBot>'''
