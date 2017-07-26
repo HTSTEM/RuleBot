@@ -82,7 +82,7 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                         else:
                             m = 'I found:'
                             for f in found:
-                                m += '\n**Rule {}{}:** {}'.format(*f)
+                                m += '\n**Rule {}{}:** {}'.format(f[0], f[1], self.escape(f[2]))
                                 
                                 if len(m) > 1500:
                                     await message.channel.send(m)
@@ -98,7 +98,10 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                         rule = self.lookup_rule(command)
                     
                         if rule is not None:
-                            await message.channel.send('**Rule {}:** {}'.format(command.upper(), rule))
+                            await message.channel.send('**Rule {}:** {}'.format(command.upper(), self.escape(rule)))
+        
+    def escape(self, message):
+        return message.replace('@', '@\u200b').replace('`', '\\`').replace('*', '\\*').replace('_', '\\_')
         
     def lookup_rule(self, code):
         if len(code) < 2:
