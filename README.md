@@ -3,8 +3,8 @@ This bot provides a few commands for accessing the rules on HTC.
 ## Commands:
 | Command | What does? |
 | ------- | ---------- |
-| `r.search <search term>` | Search the rules for a specific term |
 | `r.<rule id>` | Show the rule with a particular id. For example `r.A2` |
+| `r.search <search term>` | Search the rules for a specific term |
 | `r.die` | Shutdown the bot |
 | `r.reload_rules` | Fetch the rules from Google Drive and update the local copy |
 ## Hosting:
