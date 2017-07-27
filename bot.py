@@ -1,6 +1,7 @@
 import httplib2
 import os
 import io
+import re
 
 from googleapiclient.http import MediaIoBaseDownload
 from apiclient import discovery
@@ -87,6 +88,7 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                                 if len(m) > 1500:
                                     await message.channel.send(m)
                                     m = ''
+                            m += '\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'
                             if m:
                                 await message.channel.send(m)
                     elif command == 'reload_rules':
@@ -98,7 +100,25 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                         rule = self.lookup_rule(command)
                     
                         if rule is not None:
-                            await message.channel.send('**Rule {}:** {}'.format(command.upper(), self.escape(rule)))
+                            await message.channel.send('**Rule {}:** {}\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'.format(command.upper(), self.escape(rule)))
+            else:
+                if isinstance(message.channel, discord.abc.PrivateChannel) or message.guild.id in SERVER_WHITELIST:
+                    found = re.findall('\\br\\.([A-Ca-c]\\d{1,2})\\b', message.content)
+                    if found:
+                        m = ''
+                        
+                        for f in found:
+                            rule = self.lookup_rule(f)
+                            if rule is not None:
+                                m += '\n**Rule {}:** {}'.format(f.upper(), self.escape(rule))
+                                
+                                if len(m) > 1500:
+                                    await message.channel.send(m)
+                                    m = ''
+                        m += '\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'
+                        if m:
+                            await message.channel.send(m)
+                        
         
     def escape(self, message):
         return message.replace('@', '@\u200b').replace('`', '\\`').replace('*', '\\*').replace('_', '\\_')
