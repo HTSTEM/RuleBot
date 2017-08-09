@@ -9,6 +9,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
+import html2text
 import discord
 
 try:
@@ -173,31 +174,40 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
 
     def parse_cache(self):
         with open('cache.txt', 'rb') as f:
-            data = f.read().decode('utf-8')
+            html = f.read().decode('utf-8')
+        md = html2text.html2text(html)
+        with open('cache.md', 'wb') as f:
+            f.write(md.encode('utf-8'))
+            
+            
+        block = None
+        current_rule = 0
+        self.rules = {
 
-        self.rules = {}
-        rule_num = 1
-        offense_block = None
-        for line in data.split('\n'):
-            if line.lower().startswith('code '):
-                if offense_block != line[5].upper():
-                    offense_block = line[5].upper()
-                    rule_num = 1
-                    self.rules[offense_block] = {}
-            elif line.lower().startswith('notes'):
+        }
+        for line in md.split('\n'):
+            if line == '# Notes':
                 break
-            
-            
-            elif offense_block is not None:
-                if line.startswith(' '):
-                    self.rules[offense_block][rule_num - 1] += '\n' + line[3:]
+            if line.startswith('## Code ') and line.endswith(' offences'):
+                block = line[8]
+                self.rules[block] = {}
+                current_rule = 0
+            if block is not None and line.startswith('  '):
+                line = line[2:]
+                num = -1
+                if line[1] == '.':
+                    num = int(line[0])
+                    line = line[3:]
+                elif line[2] == '.':
+                    num = int(line[:2])
+                    line = line[4:]
+                if num == current_rule + 1:
+                    self.rules[block][num] = line
+                    current_rule += 1
+                elif num == -1:
+                    self.rules[block][current_rule] += '\n' + line[2:]
                 else:
-                    num, rle = line.split(' ', 1)
-                    num = num[:-1]
-                    num = int(num)
-                    
-                    self.rules[offense_block][rule_num] = rle
-                    rule_num += 1
+                    self.rules[block][current_rule] += '\n• ' + line
         
     def reload_cache(self):
         credentials = self.get_credentials()
@@ -205,7 +215,7 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
 
         service = discovery.build('drive', 'v3', http=http)
         
-        request = service.files().export(fileId='137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU', mimeType='text/plain')
+        request = service.files().export(fileId='137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU', mimeType='text/html')
         data = request.execute()
         
         with open('cache.txt', 'wb') as f:

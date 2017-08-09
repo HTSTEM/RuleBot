@@ -1,4 +1,7 @@
 venv/
 cache.txt
+cache.md
 client_secret.json
 bot-token.txt
+__pycache__/
+parseTest.py
