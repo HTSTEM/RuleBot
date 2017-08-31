@@ -26,7 +26,7 @@ CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'HTC RuleBot'
 
 PREFIX = 'r.'
-TOKEN = open('bot-token.txt').read()
+TOKEN = open('bot-token.txt').read().split('\n')[0]
 
 MAGICAL_POWERS = [161508165672763392, 140564059417346049, 312615171191341056, 149313154512322560,
                   154825973278310400, 185164223259607040, 127373929600778240, 184884413664854016,
@@ -227,7 +227,6 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
         
         self.parse_cache()
 
-        
         
     def start_bot(self):
         self.run(TOKEN)
