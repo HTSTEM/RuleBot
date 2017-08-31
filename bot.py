@@ -1,9 +1,11 @@
 import httplib2
+import asyncio
 import os
 import io
 import re
 
 from googleapiclient.http import MediaIoBaseDownload
+
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -41,19 +43,21 @@ class RuleBot(discord.Client):
         self.reload_cache()
         
         @self.event
-        async def on_ready():
+        @asyncio.coroutine
+        def on_ready():
             print('RuleBot ready on {}'.format(self.user.name))
         
         @self.event
-        async def on_message(message):
+        @asyncio.coroutine
+        def on_message(message):
             if message.content.startswith(PREFIX):
                 command = message.content[len(PREFIX):]
                 
                 if isinstance(message.channel, discord.abc.PrivateChannel) or message.guild.id in SERVER_WHITELIST:
                     if command == 'die':
                         if message.author.id in MAGICAL_POWERS:
-                            await message.channel.send(':wave:')
-                            await self.logout()
+                            yield from message.channel.send(':wave:')
+                            yield from self.logout()
                     elif command.split(' ')[0] == 'help':
                         msg = '''```yaml
 [ =-=-= RuleBot Help =-=-= ]
@@ -63,9 +67,9 @@ r.help                  Show this help message
 r.die                   Shutdown the bot
 r.reload_rules          Fetch the rules from Google Drive and update the local copy
 ```For more information about the bot, view the GitHub page at <https://github.com/Bottersnike/HTCRuleBot>'''
-                        await message.author.send(msg)
+                        yield from message.author.send(msg)
                         if not isinstance(message.channel, discord.abc.PrivateChannel):
-                            await message.channel.send(':mailbox_with_mail:')
+                            yield from message.channel.send(':mailbox_with_mail:')
                     elif command.startswith('search '):
                         term = command[7:]
                         
@@ -78,30 +82,30 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                                         found.append((block, rule, self.rules[block][rule]))
                         
                         if not found:
-                            await message.channel.send('No rule found matching that term')
+                            yield from message.channel.send('No rule found matching that term')
                         elif len(found) > 5:
-                            await message.channel.send('I found too many results. Please refine your search.')
+                            yield from message.channel.send('I found too many results. Please refine your search.')
                         else:
                             m = 'I found:'
                             for f in found:
                                 m += '\n**Rule {}{}:** {}'.format(f[0], f[1], self.escape(f[2]))
                                 
                                 if len(m) > 1500:
-                                    await message.channel.send(m)
+                                    yield from message.channel.send(m)
                                     m = ''
                             m += '\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'
                             if m:
-                                await message.channel.send(m)
+                                yield from message.channel.send(m)
                     elif command == 'reload_rules':
                         if message.author.id in MAGICAL_POWERS:
                             with message.channel.typing():
                                 self.reload_cache()
-                            await message.channel.send('Done!')
+                            yield from message.channel.send('Done!')
                     else:
                         rule = self.lookup_rule(command)
                     
                         if rule is not None:
-                            await message.channel.send('**Rule {}:** {}\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'.format(command.upper(), self.escape(rule)))
+                            yield from message.channel.send('**Rule {}:** {}\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'.format(command.upper(), self.escape(rule)))
             else:
                 if isinstance(message.channel, discord.abc.PrivateChannel) or message.guild.id in SERVER_WHITELIST:
                     found = re.findall('\\br\\.([A-Ca-c]\\d{1,2})\\b', message.content)
@@ -114,11 +118,11 @@ r.reload_rules          Fetch the rules from Google Drive and update the local c
                                 m += '\n**Rule {}:** {}'.format(f.upper(), self.escape(rule))
                                 
                                 if len(m) > 1500:
-                                    await message.channel.send(m)
+                                    yield from message.channel.send(m)
                                     m = ''
                         m += '\n<https://docs.google.com/document/d/137Fa99avZxFPovkiZRW7xSctFq2iirnKizZ4lHclHWU/edit>'
                         if m:
-                            await message.channel.send(m)
+                            yield from message.channel.send(m)
                         
         
     def escape(self, message):
